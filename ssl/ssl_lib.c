@@ -3633,7 +3633,7 @@ static int nss_keylog_int(const char* prefix,
     prefix_len = strlen(prefix);
     out_len = prefix_len + (2 * parameter_1_len) + (2 * parameter_2_len) + 3;
     if ((out = cursor = OPENSSL_malloc(out_len)) == NULL) {
-        ERR_put_error(ERR_LIB_SSL, SSL_F_NSS_KEYLOG_INT, ERR_R_MALLOC_FAILURE, OPENSSL_FILE, OPENSSL_LINE);
+        SSLerr(SSL_F_NSS_KEYLOG_INT, ERR_R_MALLOC_FAILURE);
         //SSLfatal(ssl, SSL_AD_INTERNAL_ERROR, SSL_F_NSS_KEYLOG_INT,
         //    ERR_R_MALLOC_FAILURE);
         return 0;
@@ -3668,7 +3668,7 @@ int ssl_log_rsa_client_key_exchange(SSL* ssl,
     size_t premaster_len)
 {
     if (encrypted_premaster_len < 8) {
-        ERR_put_error(ERR_LIB_SSL, SSL_F_SSL_LOG_RSA_CLIENT_KEY_EXCHANGE, ERR_R_INTERNAL_ERROR, OPENSSL_FILE, OPENSSL_LINE);
+        SSLerr(SSL_F_SSL_LOG_RSA_CLIENT_KEY_EXCHANGE, ERR_R_INTERNAL_ERROR);
         //SSLfatal(ssl, SSL_AD_INTERNAL_ERROR,
         //    SSL_F_SSL_LOG_RSA_CLIENT_KEY_EXCHANGE, ERR_R_INTERNAL_ERROR);
         return 0;
