@@ -456,3 +456,12 @@ long CRYPTO_get_mem_debug_options(void)
         return get_debug_options_func();
     return 0;
 }
+
+void CRYPTO_clear_free(void* str, size_t num, const char* file, int line)
+{
+    if (str == NULL)
+        return;
+    if (num)
+        OPENSSL_cleanse(str, num);
+    CRYPTO_free(str);
+}

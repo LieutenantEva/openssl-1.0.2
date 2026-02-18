@@ -388,6 +388,8 @@ int CRYPTO_is_mem_check_on(void);
         CRYPTO_remalloc((char **)addr,(int)num,__FILE__,__LINE__)
 # define OPENSSL_freeFunc        CRYPTO_free
 # define OPENSSL_free(addr)      CRYPTO_free(addr)
+# define OPENSSL_clear_free(addr, num) \
+        CRYPTO_clear_free(addr, num, __FILE__, __LINE__)
 
 # define OPENSSL_malloc_locked(num) \
         CRYPTO_malloc_locked((int)num,__FILE__,__LINE__)
@@ -549,6 +551,7 @@ long CRYPTO_get_mem_debug_options(void);
 int CRYPTO_push_info_(const char *info, const char *file, int line);
 int CRYPTO_pop_info(void);
 int CRYPTO_remove_all_info(void);
+void CRYPTO_clear_free(void* ptr, size_t num, const char* file, int line);
 
 /*
  * Default debugging functions (enabled by CRYPTO_malloc_debug_init() macro;

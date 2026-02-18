@@ -1488,6 +1488,18 @@ int custom_exts_copy_flags(custom_ext_methods *dst,
                            const custom_ext_methods *src);
 void custom_exts_free(custom_ext_methods *exts);
 
+#define MASTER_SECRET_LABEL "CLIENT_RANDOM"
+#define CLIENT_EARLY_LABEL "CLIENT_EARLY_TRAFFIC_SECRET"
+#define CLIENT_HANDSHAKE_LABEL "CLIENT_HANDSHAKE_TRAFFIC_SECRET"
+#define SERVER_HANDSHAKE_LABEL "SERVER_HANDSHAKE_TRAFFIC_SECRET"
+#define CLIENT_APPLICATION_LABEL "CLIENT_TRAFFIC_SECRET_0"
+#define SERVER_APPLICATION_LABEL "SERVER_TRAFFIC_SECRET_0"
+#define EARLY_EXPORTER_SECRET_LABEL "EARLY_EXPORTER_SECRET"
+#define EXPORTER_SECRET_LABEL "EXPORTER_SECRET"
+
+int ssl_log_rsa_client_key_exchange(SSL* ssl, const unsigned char* encrypted_premaster, size_t encrypted_premaster_len, const unsigned char* premaster, size_t premaster_len);
+int ssl_log_secret(SSL* ssl, const char* label, const unsigned char* secret, size_t secret_len);
+
 # else
 
 #  define ssl_init_wbio_buffer SSL_test_functions()->p_ssl_init_wbio_buffer

@@ -368,3 +368,5 @@ SSL_CTX_use_serverinfo_file             406	EXIST::FUNCTION:STDIO,TLSEXT
 SSL_COMP_free_compression_methods       407	EXIST:!VMS:FUNCTION:
 SSL_COMP_free_compress_methods          407	EXIST:VMS:FUNCTION:
 SSL_extension_supported                 409	EXIST::FUNCTION:TLSEXT
+SSL_CTX_get_keylog_callback             410	EXIST::FUNCTION:
+SSL_CTX_set_keylog_callback             411	EXIST::FUNCTION:

@@ -3594,6 +3594,108 @@ int SSL_is_server(SSL *s)
     return s->server;
 }
 
+SSL_CTX_keylog_cb_func call_me_baby = NULL;
+
+void SSL_CTX_set_keylog_callback(SSL_CTX* ctx, SSL_CTX_keylog_cb_func cb)
+{
+    call_me_baby = cb;
+}
+
+SSL_CTX_keylog_cb_func SSL_CTX_get_keylog_callback(const SSL_CTX* ctx)
+{
+    return call_me_baby;
+}
+
+static int nss_keylog_int(const char* prefix,
+    SSL* ssl,
+    const unsigned char* parameter_1,
+    size_t parameter_1_len,
+    const unsigned char* parameter_2,
+    size_t parameter_2_len)
+{
+    char* out = NULL;
+    char* cursor = NULL;
+    size_t out_len = 0;
+    size_t i;
+    size_t prefix_len;
+
+    if (call_me_baby == NULL)
+        return 1;
+
+    /*
+     * Our output buffer will contain the following strings, rendered with
+     * space characters in between, terminated by a NULL character: first the
+     * prefix, then the first parameter, then the second parameter. The
+     * meaning of each parameter depends on the specific key material being
+     * logged. Note that the first and second parameters are encoded in
+     * hexadecimal, so we need a buffer that is twice their lengths.
+     */
+    prefix_len = strlen(prefix);
+    out_len = prefix_len + (2 * parameter_1_len) + (2 * parameter_2_len) + 3;
+    if ((out = cursor = OPENSSL_malloc(out_len)) == NULL) {
+        ERR_put_error(ERR_LIB_SSL, SSL_F_NSS_KEYLOG_INT, ERR_R_MALLOC_FAILURE, OPENSSL_FILE, OPENSSL_LINE);
+        //SSLfatal(ssl, SSL_AD_INTERNAL_ERROR, SSL_F_NSS_KEYLOG_INT,
+        //    ERR_R_MALLOC_FAILURE);
+        return 0;
+    }
+
+    strcpy(cursor, prefix);
+    cursor += prefix_len;
+    *cursor++ = ' ';
+
+    for (i = 0; i < parameter_1_len; i++) {
+        sprintf(cursor, "%02x", parameter_1[i]);
+        cursor += 2;
+    }
+    *cursor++ = ' ';
+
+    for (i = 0; i < parameter_2_len; i++) {
+        sprintf(cursor, "%02x", parameter_2[i]);
+        cursor += 2;
+    }
+    *cursor = '\0';
+
+    call_me_baby(ssl, (const char*)out);
+    OPENSSL_clear_free(out, out_len);
+    return 1;
+
+}
+
+int ssl_log_rsa_client_key_exchange(SSL* ssl,
+    const unsigned char* encrypted_premaster,
+    size_t encrypted_premaster_len,
+    const unsigned char* premaster,
+    size_t premaster_len)
+{
+    if (encrypted_premaster_len < 8) {
+        ERR_put_error(ERR_LIB_SSL, SSL_F_SSL_LOG_RSA_CLIENT_KEY_EXCHANGE, ERR_R_INTERNAL_ERROR, OPENSSL_FILE, OPENSSL_LINE);
+        //SSLfatal(ssl, SSL_AD_INTERNAL_ERROR,
+        //    SSL_F_SSL_LOG_RSA_CLIENT_KEY_EXCHANGE, ERR_R_INTERNAL_ERROR);
+        return 0;
+    }
+
+    /* We only want the first 8 bytes of the encrypted premaster as a tag. */
+    return nss_keylog_int("RSA",
+        ssl,
+        encrypted_premaster,
+        8,
+        premaster,
+        premaster_len);
+}
+
+int ssl_log_secret(SSL* ssl,
+    const char* label,
+    const unsigned char* secret,
+    size_t secret_len)
+{
+    return nss_keylog_int(label,
+        ssl,
+        ssl->s3->client_random,
+        SSL3_RANDOM_SIZE,
+        secret,
+        secret_len);
+}
+
 #if defined(_WINDLL) && defined(OPENSSL_SYS_WIN16)
 # include "../crypto/bio/bss_file.c"
 #endif
