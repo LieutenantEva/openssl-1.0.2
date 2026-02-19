@@ -175,6 +175,17 @@ int ssl3_send_finished(SSL *s, int a, int b, const char *sender, int slen)
         l = i;
 
         /*
+         * Log the master secret, if logging is enabled. We don't log it for
+         * TLSv1.3: there's a different key schedule for that.
+         */
+        if (!ssl_log_secret(s, MASTER_SECRET_LABEL,
+            s->session->master_key,
+            s->session->master_key_length)) {
+            /* SSLfatal() already called */
+            return 0;
+        }
+
+        /*
          * Copy the finished so we can use it for renegotiation checks
          */
         if (s->type == SSL_ST_CONNECT) {

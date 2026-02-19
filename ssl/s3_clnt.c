@@ -2596,6 +2596,14 @@ int ssl3_send_client_key_exchange(SSL *s)
                                                             session->master_key,
                                                             tmp_buf,
                                                             sizeof(tmp_buf));
+            
+            /* Log the premaster secret, if logging is enabled. */
+            if (!ssl_log_rsa_client_key_exchange(s, tmp_buf, sizeof(tmp_buf), s->session->master_key, s->session->master_key_length)) {
+                /* SSLfatal() already called */
+                OPENSSL_cleanse(tmp_buf, sizeof(tmp_buf));
+                goto err;
+            }
+            
             OPENSSL_cleanse(tmp_buf, sizeof(tmp_buf));
         }
 #endif
